@@ -35,14 +35,14 @@ struct ContentView: View {
                             }
                             .padding(.bottom)
 
-//                            // Speaking Button
-//                            NavigationLink(destination: SpeakingView(word: word)) {
-//                                Text("Speaking")
-//                                    .padding()
-//                                    .background(Color.orange)
-//                                    .foregroundColor(.white)
-//                                    .cornerRadius(8)
-//                            }
+                           // Speaking Button
+                           NavigationLink(destination: SpeakingView(word: word)) {
+                               Text("Speaking")
+                                   .padding()
+                                   .background(Color.orange)
+                                   .foregroundColor(.white)
+                                   .cornerRadius(8)
+                            }
                         }
                     } else {
                         Text("Loading words...")

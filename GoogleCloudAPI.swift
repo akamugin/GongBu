@@ -63,6 +63,58 @@ struct GoogleCloudAPI {
         }
     }
     
+    /// Asynchronously recognizes speech by sending the audio data to the Firebase Vertex AI API.
+    /// - Parameters:
+    ///   - audioURL: The URL of the audio file to analyze.
+    ///   - prompt: The text prompt to include with the audio.
+    /// - Returns: The extracted Korean text or an empty string on failure.
+    static func recognizeSpeech(audioURL: URL, prompt: String = "Write in JSON output key called \"korean\" that contains the korean letters spoken.") async -> String {
+        do {
+            // Initialize the Vertex AI service
+            let vertex = VertexAI.vertexAI()
+            
+            // Initialize the generative model with a model that supports your use case
+            let model = vertex.generativeModel(modelName: "gemini-1.5-flash")
+            
+            // Read audio data
+            let audioData = try Data(contentsOf: audioURL)
+            
+            // Create ModelContent with audio data
+            let audioContent = ModelContent.Part.data(mimetype: "audio/wav", audioData)
+            
+            // Generate content asynchronously
+            let response = try await model.generateContent(audioContent, prompt)
+            
+            // Extract the text from the response
+            if let text = response.text {
+                print("Extracted Korean Text: \(text)")
+                
+                // Use regex to find the JSON object within the text
+                if let jsonObject = extractJSON(from: text) {
+                    // Decode the JSON string to extract "korean"
+                    if let data = jsonObject.data(using: .utf8) {
+                        let decoder = JSONDecoder()
+                        let recognizedText = try decoder.decode(RecognizedText.self, from: data)
+                        print("Parsed Korean Text: \(recognizedText.korean)")
+                        return recognizedText.korean
+                    } else {
+                        print("Failed to convert extracted JSON string to Data.")
+                        return ""
+                    }
+                } else {
+                    print("No valid JSON object found in the response.")
+                    return ""
+                }
+            } else {
+                print("No text extracted from the response.")
+                return ""
+            }
+        } catch {
+            print("Error during speech recognition: \(error.localizedDescription)")
+            return ""
+        }
+    }
+    
     /// Extracts the first JSON object found within a given text using regular expressions.
     /// - Parameter text: The input text containing a JSON object.
     /// - Returns: The JSON string if found, otherwise nil.
