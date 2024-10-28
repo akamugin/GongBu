@@ -1,29 +1,23 @@
-//
-//  CSVParser.swift
-//  GongBu
-//
-//  Created by Stella Lee on 9/30/24.
-//
-
-
-// CSVParser.swift
-
+// GongBu/CSVParser.swift
 import Foundation
 
 struct CSVParser {
+    /// Parses CSV content into an array of WordPair objects.
+    /// Assumes CSV format: term,definition
     static func parse(csvContent: String) -> [WordPair] {
         var wordPairs: [WordPair] = []
         let rows = csvContent.components(separatedBy: "\n")
-        
+
         for row in rows {
             let columns = row.components(separatedBy: ",")
             if columns.count >= 2 {
-                let korean = columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
-                let english = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                let wordPair = WordPair(korean: korean, english: english)
+                let term = columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                let definition = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                let wordPair = WordPair(korean: term, english: definition)
                 wordPairs.append(wordPair)
             }
         }
+
         return wordPairs
     }
 }

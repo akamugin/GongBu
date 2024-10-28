@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CanvasView: UIViewRepresentable {
-    @Binding var drawing: UIImage? // This will store the final drawing
+    @Binding var drawing: UIImage?
     
     class Coordinator: NSObject {
         var parent: CanvasView

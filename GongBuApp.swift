@@ -1,3 +1,4 @@
+// GongBu/GongBuApp.swift
 import SwiftUI
 import FirebaseCore
 
@@ -15,14 +16,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct GongBuApp: App {
     // Register the AppDelegate for Firebase setup
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @State private var navigateToSelection = false  // Step 1: Create a State variable
+    
+    @StateObject private var appState = AppState()  // Initialize AppState as a StateObject
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                ContentView(navigateToSelection: $navigateToSelection)  // Step 2: Pass the binding to ContentView
-            }
+            ContentView()
+                .environmentObject(appState)  // Inject AppState into the environment
         }
     }
 }
-

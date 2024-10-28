@@ -1,134 +1,113 @@
-//
-//  HandwritingView.swift
-//  GongBu
-//
-//  Created by Stella Lee on 10/5/24.
-//
-
 import SwiftUI
-import FirebaseVertexAI
 
 struct HandwritingView: View {
-    let word: WordPair
-    @Environment(\.presentationMode) var presentationMode
-    @State private var drawingImage: UIImage?
-    @State private var resultText: String = ""
-    @State private var isCorrect: Bool?
-    @State private var isLoading: Bool = false
-    @State private var showAlert: Bool = false
-    @State private var alertMessage: String = ""
-    
+    @State private var drawnLines: [Line] = []
+    @State private var currentLine: Line = Line(points: [])
+
     var body: some View {
         VStack {
-            Text("Write: \(word.english)")
-                .font(.headline)
-                .padding()
-            
-            CanvasView(drawing: $drawingImage)
-                .frame(width: 300, height: 300)
+            // Handwriting Canvas
+            DrawingCanvas(drawnLines: $drawnLines, currentLine: $currentLine)
+                .background(Color.white)
                 .border(Color.gray, width: 1)
                 .padding()
-            
-            HStack {
-                Button(action: {
-                    // Reset the drawing and results
-                    drawingImage = nil
-                    resultText = ""
-                    isCorrect = nil
-                }) {
+
+            // Buttons
+            HStack(spacing: 40) {
+                Button(action: clearCanvas) {
                     Text("Clear")
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.red)
+                        .font(.title2)
                         .foregroundColor(.white)
-                        .cornerRadius(8)
+                        .frame(width: 100, height: 50)
+                        .background(Color.red)
+                        .cornerRadius(15)
                 }
-                
-                Button(action: {
-                    // Submit the drawing for recognition
-                    recognizeHandwriting()
-                }) {
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                    } else {
-                        Text("Submit")
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
+                .buttonStyle(PlainButtonStyle())
+
+                Button(action: submitDrawing) {
+                    Text("Submit")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .frame(width: 100, height: 50)
+                        .background(Color.green)
+                        .cornerRadius(15)
                 }
-                .disabled(isLoading || drawingImage == nil)
+                .buttonStyle(PlainButtonStyle())
             }
-            .padding([.leading, .trailing])
-            
-            // Display the recognized text and correctness
-            if !resultText.isEmpty {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Recognized:")
-                        .font(.subheadline)
-                        .bold()
-                    
-                    Text(resultText)
-                        .font(.body)
-                        .padding()
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(8)
-                    
-                    if let correct = isCorrect {
-                        Text(correct ? "Correct!" : "Incorrect.")
-                            .foregroundColor(correct ? .green : .red)
-                            .font(.headline)
-                    }
-                }
-                .padding()
-            }
-            
+            .padding()
+
             Spacer()
         }
-        .padding()
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text("Error"),
-                  message: Text(alertMessage),
-                  dismissButton: .default(Text("OK")))
-        }
+        .navigationTitle("Handwriting")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
-    /// Recognizes handwriting by sending the drawing image to the Firebase Vertex AI API.
-    func recognizeHandwriting() {
-        guard let image = drawingImage else { return }
-        
-        // Set loading state
-        isLoading = true
-        
-        Task {
-            let prompt = "Write in JSON output key called \"korean\" that contains the korean letters seen."
-            let recognizedText = await GoogleCloudAPI.recognizeHandwriting(image: image, prompt: prompt)
-            
-            DispatchQueue.main.async {
-                self.isLoading = false
-                if !recognizedText.isEmpty {
-                    self.resultText = recognizedText
-                    // Compare the recognized text with the correct Korean word (case-insensitive)
-                    self.isCorrect = (recognizedText.lowercased() == word.korean.lowercased())
-                } else {
-                    self.resultText = "No Korean text detected."
-                    self.isCorrect = false
-                }
-            }
-        }
+    /// Clears the drawing canvas
+    func clearCanvas() {
+        drawnLines.removeAll()
+    }
+
+    /// Submits the drawing for processing
+    func submitDrawing() {
+        // Implement your handwriting processing logic here
+        print("Drawing submitted.")
     }
 }
 
 struct HandwritingView_Previews: PreviewProvider {
     static var previews: some View {
-        // Corrected parameter order: 'korean' precedes 'english'
-        HandwritingView(word: WordPair(korean: "자동차", english: "Car"))
+        HandwritingView()
     }
+}
+
+// MARK: - Drawing Canvas Components
+
+struct DrawingCanvas: View {
+    @Binding var drawnLines: [Line]
+    @Binding var currentLine: Line
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Existing Drawn Lines
+                ForEach(drawnLines) { line in
+                    Path { path in
+                        guard let firstPoint = line.points.first else { return }
+                        path.move(to: firstPoint)
+                        for point in line.points.dropFirst() {
+                            path.addLine(to: point)
+                        }
+                    }
+                    .stroke(Color.blue, lineWidth: 2)
+                }
+
+                // Current Drawing Line
+                Path { path in
+                    guard let firstPoint = currentLine.points.first else { return }
+                    path.move(to: firstPoint)
+                    for point in currentLine.points.dropFirst() {
+                        path.addLine(to: point)
+                    }
+                }
+                .stroke(Color.blue, lineWidth: 2)
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0.1)
+                    .onChanged { value in
+                        let location = value.location
+                        currentLine.points.append(location)
+                    }
+                    .onEnded { _ in
+                        drawnLines.append(currentLine)
+                        currentLine = Line(points: [])
+                    }
+            )
+        }
+    }
+}
+
+struct Line: Identifiable {
+    let id = UUID()
+    var points: [CGPoint]
 }

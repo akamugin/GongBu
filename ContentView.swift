@@ -1,81 +1,48 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Binding var navigateToSelection: Bool  // Step 1: Use binding to track the navigation state
-    @State private var wordPairs: [WordPair] = []
-    @State private var currentWord: WordPair?
-
     var body: some View {
-        ZStack {
-            // Full-screen DesignView background
-            if !navigateToSelection {
-                DesignView(navigateToSelection: $navigateToSelection)
-                    .ignoresSafeArea()  // Ensure DesignView takes up the full screen
-            } else {
-                Color.blue.opacity(0.1).ignoresSafeArea()  // Background color for selection screen
-
-                VStack {
-                    if let word = currentWord {
-                        VStack {
-                            Text("Choose input type")
-                                .font(.headline)
-                                .padding()
-
-                            Text(word.english)
-                                .font(.largeTitle)
-                                .padding()
-
-                            // Writing Button
-                            NavigationLink(destination: HandwritingView(word: word)) {
-                                Text("Writing")
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                            .padding(.bottom)
-
-                           // Speaking Button
-                           NavigationLink(destination: SpeakingView(word: word)) {
-                               Text("Speaking")
-                                   .padding()
-                                   .background(Color.orange)
-                                   .foregroundColor(.white)
-                                   .cornerRadius(8)
-                            }
-                        }
-                    } else {
-                        Text("Loading words...")
-                            .onAppear {
-                                loadCSV()
-                            }
+        NavigationView {
+            ZStack {
+                // Background Gradient
+                LinearGradient(gradient: Gradient(colors: [Color.purple, Color.blue]),
+                               startPoint: .topLeading,
+                               endPoint: .bottomTrailing)
+                    .edgesIgnoringSafeArea(.all)
+                
+                VStack(spacing: 60) {
+                    Spacer()
+                    
+                    // App Title "Gong Bu" with Bubbly Font
+                    Text("Gong Bu")
+                        .font(Font.custom("AvenirNext-Bold", size: 80))
+                        .foregroundColor(.white)
+                        .shadow(color: Color.white.opacity(0.7), radius: 10, x: 0, y: 5)
+                        .padding(.top, 100)
+                    
+                    Spacer()
+                    
+                    // Play Button leading to DesignView
+                    NavigationLink(destination: DesignView()) {
+                        Text("Play")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.pink)
+                            .cornerRadius(30)
+                            .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 5)
                     }
+                    .buttonStyle(PlainButtonStyle()) // Apply custom styling
+                    .padding(.bottom, 100)
                 }
-                .padding()
             }
-        }
-    }
-
-    func loadCSV() {
-        if let filepath = Bundle.main.path(forResource: "vocab", ofType: "csv") {
-            do {
-                let contents = try String(contentsOfFile: filepath)
-                wordPairs = CSVParser.parse(csvContent: contents)
-                if let firstWord = wordPairs.randomElement() {
-                    currentWord = firstWord
-                }
-                print("Loaded \(wordPairs.count) word pairs.")
-            } catch {
-                print("Error loading CSV file.")
-            }
-        } else {
-            print("CSV file not found.")
+            .navigationBarHidden(true) // Hide the navigation bar for a cleaner look
         }
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(navigateToSelection: .constant(false))  // Pass constant binding for preview
+        ContentView()
     }
 }

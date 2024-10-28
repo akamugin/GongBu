@@ -26,7 +26,6 @@ struct GoogleCloudAPI {
             let vertex = VertexAI.vertexAI()
             
             // Initialize the generative model with a model that supports your use case
-            // Gemini 1.5 models are versatile and can be used with all API capabilities
             let model = vertex.generativeModel(modelName: "gemini-1.5-flash")
             
             // Generate content asynchronously
@@ -37,7 +36,6 @@ struct GoogleCloudAPI {
                 print("Extracted Korean Text: \(text)")
                 
                 // Use regex to find the JSON object within the text
-                // This handles cases where the response is wrapped in code fences or contains additional text
                 if let jsonObject = extractJSON(from: text) {
                     // Decode the JSON string to extract "korean"
                     if let data = jsonObject.data(using: .utf8) {
@@ -120,7 +118,6 @@ struct GoogleCloudAPI {
     /// - Returns: The JSON string if found, otherwise nil.
     private static func extractJSON(from text: String) -> String? {
         // Define the regex pattern to match JSON objects
-        // This pattern looks for the first occurrence of text enclosed in curly braces
         let pattern = "\\{[^\\{\\}]*\\}"
         
         do {
@@ -132,7 +129,6 @@ struct GoogleCloudAPI {
                 let jsonString = nsText.substring(with: match.range)
                 return jsonString
             } else {
-                // No JSON object found
                 return nil
             }
         } catch {
