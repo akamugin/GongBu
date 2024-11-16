@@ -9,8 +9,8 @@ import SwiftUI
 import FirebaseVertexAI
 
 struct HandwritingView: View {
+    @Environment(\.dismiss) var dismiss
     let word: WordPair
-    @Environment(\.presentationMode) var presentationMode
     @State private var drawingImage: UIImage?
     @State private var resultText: String = ""
     @State private var isCorrect: Bool?
@@ -20,6 +20,28 @@ struct HandwritingView: View {
     
     var body: some View {
         VStack {
+            HStack {
+                Button(action: {
+                    dismiss()
+                }) {
+//                    HStack(spacing: 8) {
+//                        Image(systemName: "chevron.left.circle.fill")
+//                            .font(.system(size: 24))
+//                        Text("Back")
+//                            .font(.system(size: 18, weight: .medium, design: .rounded))
+//                    }
+//                    .foregroundColor(.white)
+//                    .padding(12)
+//                    .background(
+//                        Capsule()
+//                            .fill(Color(hex: "FF69B4").opacity(0.8))
+//                            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+//                    )
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+            
             Text("Write: \(word.english)")
                 .font(.headline)
                 .padding()
