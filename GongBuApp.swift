@@ -15,12 +15,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct GongBuApp: App {
     // Register the AppDelegate for Firebase setup
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @State private var navigateToSelection = false  // Step 1: Create a State variable
+    @StateObject private var gameState = GameState()
+    @State private var navigateToSelection = false
 
     var body: some Scene {
         WindowGroup {
             NavigationView {
-                ContentView(navigateToSelection: $navigateToSelection)  // Step 2: Pass the binding to ContentView
+                ContentView(navigateToSelection: $navigateToSelection)
+                    .environmentObject(gameState)
             }
         }
     }
